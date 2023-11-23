@@ -20,11 +20,60 @@ pub(crate) fn transpose_poly_values<F: Field>(polys: Vec<PolynomialValues<F>>) -
 }
 
 pub fn transpose<T: Send + Sync + Copy>(matrix: &[Vec<T>]) -> Vec<Vec<T>> {
-    let len = matrix[0].len();
-    (0..len)
-        .into_par_iter()
-        .map(|i| matrix.iter().map(|row| row[i]).collect())
-        .collect()
+    // let len = matrix[0].len();
+    // (0..len)
+    //     .into_par_iter()
+    //     .map(|i| matrix.iter().map(|row| row[i]).collect())
+    //     .collect()
+    let l = matrix.len();
+    let w = matrix[0].len();
+
+    let mut transposed = vec![vec![]; w];
+    for i in 0..w {
+        transposed[i].reserve_exact(l);
+        unsafe {
+            // After .reserve_exact(l), transposed[i] will have capacity at least l. Hence,
+            // set_len will not cause the buffer to overrun.
+            transposed[i].set_len(l);
+        }
+    }
+
+    #[cfg(feature = "parallel")]
+    if w > l && w.is_power_of_two() {
+        let batch_size = w / rayon::current_num_threads();
+        if batch_size >= 128 {
+            transposed
+                .par_chunks_mut(batch_size)
+                .enumerate()
+                .for_each(|(i, batch)| {
+                    let batch_offset = i * batch_size;
+                    for (k, row_buf) in batch.iter_mut().enumerate() {
+                        let j = k + batch_offset;
+                        for i in 0..l {
+                            (*row_buf)[i] = matrix[i][j];
+                        }
+                    }
+                });
+            return transposed;
+        }
+    }
+
+    // Optimization: ensure the larger loop is outside.
+    if w >= l {
+        for i in 0..w {
+            for j in 0..l {
+                transposed[i][j] = matrix[j][i];
+            }
+        }
+    } else {
+        for j in 0..l {
+            for i in 0..w {
+                transposed[i][j] = matrix[j][i];
+            }
+        }
+    }
+
+    transposed
 }
 
 pub(crate) fn reverse_bits(n: usize, num_bits: usize) -> usize {
