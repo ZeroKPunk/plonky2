@@ -12,6 +12,7 @@ use crate::hash::hash_types::{HashOut, RichField};
 use crate::hash::hashing::PlonkyPermutation;
 use crate::hash::keccak::KeccakHash;
 use crate::hash::poseidon::PoseidonHash;
+use crate::hash::poseidon2::Poseidon2Hash;
 use crate::iop::target::{BoolTarget, Target};
 use crate::plonk::circuit_builder::CircuitBuilder;
 
@@ -95,6 +96,16 @@ pub trait GenericConfig<const D: usize>:
     type Hasher: Hasher<Self::F>;
     /// Algebraic hash function used for the challenger and hashing public inputs.
     type InnerHasher: AlgebraicHasher<Self::F>;
+}
+
+/// Configuration using Poseidon2 over the Goldilocks field.
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize)]
+pub struct Poseidon2GoldilocksConfig;
+impl GenericConfig<2> for Poseidon2GoldilocksConfig {
+    type F = GoldilocksField;
+    type FE = QuadraticExtension<Self::F>;
+    type Hasher = Poseidon2Hash;
+    type InnerHasher = Poseidon2Hash;
 }
 
 /// Configuration using Poseidon over the Goldilocks field.

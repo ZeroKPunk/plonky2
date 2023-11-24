@@ -9,8 +9,10 @@ use crate::hash::poseidon::Poseidon;
 use crate::iop::target::Target;
 use crate::plonk::config::GenericHashOut;
 
+use super::poseidon2::Poseidon2;
+
 /// A prime order field with the features we need to use it as a base field in our argument system.
-pub trait RichField: PrimeField64 + Poseidon {}
+pub trait RichField: PrimeField64 + Poseidon + Poseidon2 {}
 
 impl RichField for GoldilocksField {}
 
