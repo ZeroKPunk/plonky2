@@ -96,6 +96,10 @@ pub trait GenericConfig<const D: usize>:
     type Hasher: Hasher<Self::F>;
     /// Algebraic hash function used for the challenger and hashing public inputs.
     type InnerHasher: AlgebraicHasher<Self::F>;
+
+    fn config_type() -> String {
+        format!("{:?}", core::any::type_name::<Self>())
+    }
 }
 
 /// Configuration using Poseidon2 over the Goldilocks field.
