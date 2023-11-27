@@ -93,8 +93,8 @@ impl<F: RichField + Extendable<D>, C: GenericConfig<D, F = F>, const D: usize>
             "FFT + blinding",
             Self::lde_values(&polynomials, rate_bits, blinding, fft_root_table)
         );
-
-        let mut leaves = timed!(timing, "transpose LDEs", transpose(&lde_values));
+        let transpose_ldes_log = format!("transpose LDEs Matrix of size {}x{} data size {} MB", lde_values.len(), lde_values[0].len(), lde_values.len() * lde_values[0].len() * std::mem::size_of::<F>() / 1024 / 1024);
+        let mut leaves = timed!(timing, &transpose_ldes_log, transpose(&lde_values));
         reverse_index_bits_in_place(&mut leaves);
         let merkle_tree = timed!(
             timing,
